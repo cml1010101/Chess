@@ -352,6 +352,7 @@ Board::Board()
     next = PLAYER_WHITE;
     kingWhite = Point(0, 3);
     kingBlack = Point(7, 3);
+    winner = -1;
 }
 bool Board::canMove(Move* move, bool checkForCheck)
 {

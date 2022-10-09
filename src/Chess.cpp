@@ -522,6 +522,6 @@ ostream& operator<<(ostream& out, Board board)
         }
         out << endl;
     }
-    out << "\tABCDEFGH";
+    out << "\tABCDEFGH\n";
     return out;
 }

@@ -1,0 +1,521 @@
+#include "../include/Chess.h"
+#include <math.h>
+#include <algorithm>
+using namespace chess;
+using namespace std;
+bool Pawn::canMove(Board* board, Move* move)
+{
+    int dRow = (move->dest.row - loc.row) * direction(player), dCol = abs(move->dest.col - loc.col);
+    if (dRow == 1)
+    {
+        if (dCol == 0)
+        {
+            return board->grid[move->dest.row][move->dest.col] == NULL;
+        }
+        else if (dCol == 1)
+        {
+            return board->grid[move->dest.row][move->dest.col] != NULL
+                && board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+    }
+    else if (dRow == 2 && dCol == 0)
+    {
+        return board->grid[move->dest.row][move->dest.col] == NULL
+            && move->dest.row == (starting_row(player) + direction(player));
+    }
+    return false;
+}
+vector<Move*> Pawn::getPossibleMoves(Board* board, bool checkForCheck)
+{
+    vector<Move*> moves = {};
+    Move* move;
+    move = new Move(loc, loc + Point(direction(player), 0));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(direction(player), 1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(direction(player), -1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(direction(player) * 2, 0));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    return moves;
+}
+bool Rook::canMove(Board* board, Move* move)
+{
+    int dRow = move->dest.row - loc.row, dCol = move->dest.col - loc.col;
+    if (dRow == 0)
+    {
+        if (dCol > 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row][loc.col + i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+        else if (dCol < 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row][loc.col - i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+    }
+    else if (dCol == 0)
+    {
+        if (dRow > 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row + i][loc.col]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+        else if (dRow < 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row - i][loc.col]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+    }
+    return false;
+}
+vector<Move*> Rook::getPossibleMoves(Board* board, bool checkForCheck)
+{
+    vector<Move*> moves = {};
+    Move* move;
+    for (size_t i = 0; i < 8; i++)
+    {
+        move = new Move(loc, Point(i, loc.col));
+        if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+        move = new Move(loc, Point(loc.row, i));
+        if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    }
+    return moves;
+}
+bool Knight::canMove(Board* board, Move* move)
+{
+    int dRow = abs(move->dest.row - loc.row), dCol = abs(move->dest.col - loc.col);
+    return (dRow == 1 && dCol == 2) || (dRow == 2 && dCol == 1);
+}
+vector<Move*> Knight::getPossibleMoves(Board* board, bool checkForCheck)
+{
+    vector<Move*> moves = {};
+    Move* move;
+    move = new Move(loc, loc + Point(1, 2));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(1, -2));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(2, 1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(2, -1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-1, 2));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-1, -2));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-2, 1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-2, -1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    return moves;
+}
+bool Bishop::canMove(Board* board, Move* move)
+{
+    int dRow = move->dest.row - loc.row, dCol = move->dest.col - loc.col;
+    if (!(abs(dRow) == abs(dCol))) return false;
+    if (dRow > 0)
+    {
+        if (dCol > 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row + i][loc.col + i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+        else if (dCol < 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row + i][loc.col - i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+    }
+    else if (dCol < 0)
+    {
+        if (dRow > 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row - i][loc.col + i]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+        else if (dRow < 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row - i][loc.col - i]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+    }
+    return false;
+}
+vector<Move*> Bishop::getPossibleMoves(Board* board, bool checkForCheck)
+{
+    vector<Move*> moves = {};
+    Move* move;
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            move = new Move(loc, Point(i, j));
+            if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+        }
+    }
+    return moves;
+}
+bool Queen::canMove(Board* board, Move* move)
+{
+    int dRow = move->dest.row - loc.row, dCol = move->dest.col - loc.col;
+    if (dRow == 0)
+    {
+        if (dCol > 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row][loc.col + i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+        else if (dCol < 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row][loc.col - i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+    }
+    else if (dCol == 0)
+    {
+        if (dRow > 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row + i][loc.col]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+        else if (dRow < 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row - i][loc.col]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+    }
+    if (!(abs(dRow) == abs(dCol))) return false;
+    if (dRow > 0)
+    {
+        if (dCol > 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row + i][loc.col + i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+        else if (dCol < 0)
+        {
+            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            {
+                if (board->grid[loc.row + i][loc.col - i]) return false;
+            }
+            return board->grid[loc.row][move->dest.col] == NULL
+                || board->grid[loc.row][move->dest.col]->player != player;
+        }
+    }
+    else if (dCol < 0)
+    {
+        if (dRow > 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row - i][loc.col + i]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+        else if (dRow < 0)
+        {
+            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            {
+                if (board->grid[loc.row - i][loc.col - i]) return false;
+            }
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
+        }
+    }
+    return false;
+}
+vector<Move*> Queen::getPossibleMoves(Board* board, bool checkForCheck)
+{
+    vector<Move*> moves = {};
+    Move* move;
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            move = new Move(loc, Point(i, j));
+            if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+        }
+    }
+    return moves;
+}
+bool King::canMove(Board* board, Move* move)
+{
+    int dRow = abs(move->dest.row - loc.row), dCol = abs(move->dest.col - loc.col);
+    return (dRow == 0 || dRow == 1) && (dCol == 0 || dCol == 1);
+}
+vector<Move*> King::getPossibleMoves(Board* board, bool checkForCheck = true)
+{
+    vector<Move*> moves = {};
+    Move* move;
+    move = new Move(loc, loc + Point(1, 1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(1, -1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(1, 0));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(0, -1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(0, 1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-1, 1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-1, 0));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(loc, loc + Point(-1, -1));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    return moves;
+}
+Board::Board()
+{
+    for (size_t i = 2; i < 6; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            grid[i][j] = NULL;
+        }
+    }
+    grid[0][0] = new Rook(Point(0, 0), PLAYER_WHITE);
+    grid[0][1] = new Knight(Point(0, 1), PLAYER_WHITE);
+    grid[0][2] = new Bishop(Point(0, 2), PLAYER_WHITE);
+    grid[0][3] = new King(Point(0, 3), PLAYER_WHITE);
+    grid[0][4] = new Queen(Point(0, 4), PLAYER_WHITE);
+    grid[0][5] = new Bishop(Point(0, 5), PLAYER_WHITE);
+    grid[0][6] = new Knight(Point(0, 6), PLAYER_WHITE);
+    grid[0][7] = new Rook(Point(0, 7), PLAYER_WHITE);
+    grid[7][0] = new Rook(Point(7, 0), PLAYER_BLACK);
+    grid[7][1] = new Knight(Point(7, 1), PLAYER_BLACK);
+    grid[7][2] = new Bishop(Point(7, 2), PLAYER_BLACK);
+    grid[7][3] = new King(Point(7, 3), PLAYER_BLACK);
+    grid[7][4] = new Queen(Point(7, 4), PLAYER_BLACK);
+    grid[7][5] = new Bishop(Point(7, 5), PLAYER_BLACK);
+    grid[7][6] = new Knight(Point(7, 6), PLAYER_BLACK);
+    grid[7][7] = new Rook(Point(7, 7), PLAYER_BLACK);
+    for (size_t i = 0; i < 8; i++)
+    {
+        grid[1][i] = new Pawn(Point(1, i), PLAYER_WHITE);
+        grid[6][i] = new Pawn(Point(6, i), PLAYER_BLACK);
+    }
+    next = PLAYER_WHITE;
+    kingWhite = Point(0, 3);
+    kingBlack = Point(7, 3);
+}
+bool Board::canMove(Move* move, bool checkForCheck)
+{
+    if (move->src == move->dest) return false;
+    if (!(move->src) || !(move->dest)) return false;
+    if (grid[move->src.row][move->src.col] == NULL) return false;
+    if (grid[move->src.row][move->src.col]->canMove(this, move))
+    {
+        if (!checkForCheck) return true;
+        Board* next = clone();
+        next->playMove(move);
+        if (next->inCheck()) return false;
+        return true;
+    }
+    return false;
+}
+void Board::playMove(Move* move)
+{
+    grid[move->src.row][move->src.col]->loc = move->dest;
+    grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
+    if (grid[move->dest.row][move->dest.col]->type == PIECE_KING)
+    {
+        Point& king = (next == PLAYER_WHITE) ? kingWhite : kingBlack;
+        king = move->dest;
+    }
+}
+vector<Piece*> Board::getPieces(Player player)
+{
+    vector<Piece*> pieces = {};
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (grid[i][j] && grid[i][j]->player == player)
+            {
+                pieces.emplace_back(grid[i][j]);
+            }
+        }
+    }
+    return pieces;
+}
+vector<Move*> Board::getPossibleMoves(bool checkForCheck)
+{
+    vector<Move*> moves = {};
+    auto pieces = getPieces(next);
+    for (auto piece : pieces)
+    {
+        auto possibleMoves = piece->getPossibleMoves(this, checkForCheck);
+        moves.resize(moves.size() + possibleMoves.size());
+        moves.insert(moves.end(), possibleMoves.begin(), possibleMoves.end());
+    }
+    return moves;
+}
+bool Board::inCheck()
+{
+    for (auto piece : getPieces(next))
+    {
+        Point king = (next == PLAYER_WHITE) ? kingBlack : kingWhite;
+        Move* move = new Move(piece->loc, king);
+        if (canMove(move, false)) return true;
+    }
+    return false;
+}
+Board* Board::clone()
+{
+    Board* clone = new Board();
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            clone->grid[i][j] = grid[i][j]->clone();
+        }
+    }
+    clone->next = next;
+    clone->kingBlack = kingBlack;
+    clone->kingWhite = kingWhite;
+    return clone;
+}
+Piece* Pawn::clone()
+{
+    return new Pawn(loc, player);
+}
+Piece* Rook::clone()
+{
+    return new Rook(loc, player);
+}
+Piece* Knight::clone()
+{
+    return new Knight(loc, player);
+}
+Piece* Bishop::clone()
+{
+    return new Bishop(loc, player);
+}
+Piece* Queen::clone()
+{
+    return new Queen(loc, player);
+}
+Piece* King::clone()
+{
+    return new King(loc, player);
+}
+Game::Game(Bot* whiteBot, Bot* blackBot)
+{
+    boards = {new Board()};
+    moves = {};
+    whiteBot = whiteBot;
+    blackBot = blackBot;
+}
+Board* Game::getCurrentBoard()
+{
+    return boards[boards.size() - 1];
+}
+void Game::playMove(Move* move)
+{
+    Board* nextBoard = getCurrentBoard()->clone();
+    nextBoard->playMove(move);
+    boards.emplace_back(nextBoard);
+    moves.emplace_back(move);
+}
+void Game::step()
+{
+    playMove(bots[getCurrentBoard()->next]->findMove(getCurrentBoard()));
+}
+ostream& operator<<(ostream& out, Board* board)
+{
+    for (int i = 8 - 1; i >= 0; i--)
+    {
+        out << (i + 1) << "\t";
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (board->grid[i][j])
+            {
+                string letter;
+                switch (board->grid[i][j]->type)
+                {
+                case PIECE_PAWN:
+                    letter = "p";
+                    break;
+                case PIECE_ROOK:
+                    letter = "r";
+                    break;
+                case PIECE_KNIGHT:
+                    letter = "n";
+                    break;
+                case PIECE_BISHOP:
+                    letter = "b";
+                    break;
+                case PIECE_QUEEN:
+                    letter = "q";
+                    break;
+                case PIECE_KING:
+                    letter = "k";
+                    break;
+                }
+                if (board->grid[i][j]->player == PLAYER_BLACK)
+                {
+                    transform(letter.begin(), letter.end(), letter.begin(), ::toupper);
+                }
+                out << letter;
+            }
+            else out << " ";
+        }
+        out << endl;
+    }
+    out << "\tABCDEFGH";
+}

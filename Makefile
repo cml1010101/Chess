@@ -5,4 +5,4 @@ all: ${OBJS}
 	ar rcs libchess.a ${OBJS}
 	rm -f ${OBJS}
 %.o: %.cpp
-	g++ -c $< -o $@
+	g++ -c $< -o $@ -g

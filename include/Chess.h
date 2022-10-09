@@ -208,5 +208,5 @@ namespace chess
         void step();
     };
 }
-std::ostream& operator<<(std::ostream& out, Board* board);
+std::ostream& operator<<(std::ostream& out, chess::Board* board);
 #endif

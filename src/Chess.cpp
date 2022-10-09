@@ -428,7 +428,7 @@ Board* Board::clone()
     {
         for (size_t j = 0; j < 8; j++)
         {
-            clone->grid[i][j] = grid[i][j]->clone();
+            if (grid[i][j]) clone->grid[i][j] = grid[i][j]->clone();
         }
     }
     clone->next = next;

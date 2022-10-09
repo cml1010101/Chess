@@ -482,17 +482,17 @@ void Game::step()
 {
     playMove(bots[getCurrentBoard()->next]->findMove(getCurrentBoard()));
 }
-ostream& operator<<(ostream& out, Board* board)
+ostream& operator<<(ostream& out, Board board)
 {
     for (int i = 8 - 1; i >= 0; i--)
     {
         out << (i + 1) << "\t";
         for (size_t j = 0; j < 8; j++)
         {
-            if (board->grid[i][j])
+            if (board.grid[i][j])
             {
                 string letter;
-                switch (board->grid[i][j]->type)
+                switch (board.grid[i][j]->type)
                 {
                 case PIECE_PAWN:
                     letter = "p";
@@ -513,7 +513,7 @@ ostream& operator<<(ostream& out, Board* board)
                     letter = "k";
                     break;
                 }
-                if (board->grid[i][j]->player == PLAYER_BLACK)
+                if (board.grid[i][j]->player == PLAYER_BLACK)
                 {
                     transform(letter.begin(), letter.end(), letter.begin(), ::toupper);
                 }

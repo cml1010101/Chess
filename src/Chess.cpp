@@ -22,7 +22,7 @@ bool Pawn::canMove(Board* board, Move* move)
     else if (dRow == 2 && dCol == 0)
     {
         return board->grid[move->dest.row][move->dest.col] == NULL
-            && move->dest.row == (starting_row(player) + direction(player));
+            && move->src.row == (starting_row(player) + direction(player));
     }
     return false;
 }
@@ -440,6 +440,7 @@ Board* Board::clone()
         for (size_t j = 0; j < 8; j++)
         {
             if (grid[i][j]) clone->grid[i][j] = grid[i][j]->clone();
+            else clone->grid[i][j] = NULL;
         }
     }
     clone->next = next;

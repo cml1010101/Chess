@@ -297,7 +297,7 @@ bool King::canMove(Board* board, Move* move)
     int dRow = abs(move->dest.row - loc.row), dCol = abs(move->dest.col - loc.col);
     return (dRow == 0 || dRow == 1) && (dCol == 0 || dCol == 1);
 }
-vector<Move*> King::getPossibleMoves(Board* board, bool checkForCheck = true)
+vector<Move*> King::getPossibleMoves(Board* board, bool checkForCheck)
 {
     vector<Move*> moves = {};
     Move* move;

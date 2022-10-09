@@ -518,4 +518,5 @@ ostream& operator<<(ostream& out, Board* board)
         out << endl;
     }
     out << "\tABCDEFGH";
+    return out;
 }

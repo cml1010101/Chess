@@ -1,6 +1,7 @@
 #include "../include/Chess.h"
 #include <math.h>
 #include <algorithm>
+#include <iostream>
 using namespace chess;
 using namespace std;
 bool Pawn::canMove(Board* board, Move* move)
@@ -356,9 +357,18 @@ Board::Board()
 }
 bool Board::canMove(Move* move, bool checkForCheck)
 {
-    if (move->src == move->dest) return false;
-    if (!(move->src) || !(move->dest)) return false;
-    if (grid[move->src.row][move->src.col] == NULL) return false;
+    if (move->src == move->dest)
+    {
+        return false;
+    }
+    if (!(move->src) || !(move->dest))
+    {
+        return false;
+    }
+    if (grid[move->src.row][move->src.col] == NULL)
+    {
+        return false;
+    }
     if (grid[move->src.row][move->src.col]->canMove(this, move))
     {
         if (!checkForCheck) return true;
@@ -377,12 +387,13 @@ void Board::playMove(Move* move)
     }
     grid[move->src.row][move->src.col]->loc = move->dest;
     grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
+    grid[move->src.row][move->src.col] = NULL;
     if (grid[move->dest.row][move->dest.col]->type == PIECE_KING)
     {
         Point& king = (next == PLAYER_WHITE) ? kingWhite : kingBlack;
         king = move->dest;
     }
-    next = PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+    next = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 }
 vector<Piece*> Board::getPieces(Player player)
 {

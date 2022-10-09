@@ -78,6 +78,10 @@ namespace chess
         {
             return (row >= 0 && row < 8) && (col >= 0 && col < 8);
         }
+        inline friend bool operator==(Point a, Point b)
+        {
+            return a.row == b.row && a.col == b.col;
+        }
     };
     class Move
     {

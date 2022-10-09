@@ -370,6 +370,10 @@ bool Board::canMove(Move* move, bool checkForCheck)
 }
 void Board::playMove(Move* move)
 {
+    if (!(move->src) && !(move->dest))
+    {
+        winner = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+    }
     grid[move->src.row][move->src.col]->loc = move->dest;
     grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
     if (grid[move->dest.row][move->dest.col]->type == PIECE_KING)
@@ -377,6 +381,7 @@ void Board::playMove(Move* move)
         Point& king = (next == PLAYER_WHITE) ? kingWhite : kingBlack;
         king = move->dest;
     }
+    next = PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 }
 vector<Piece*> Board::getPieces(Player player)
 {

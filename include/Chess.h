@@ -180,6 +180,7 @@ namespace chess
         Piece* grid[8][8];
         Player next;
         Point kingWhite, kingBlack;
+        int winner;
         Board();
         bool canMove(Move* move, bool checkForCheck = true);
         void playMove(Move* move);

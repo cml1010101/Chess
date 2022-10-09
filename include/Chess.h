@@ -188,7 +188,6 @@ namespace chess
         std::vector<Move*> getPossibleMoves(bool checkForCheck = true);
         bool inCheck();
         Board* clone();
-        friend std::ostream& operator<<(std::ostream& out, Board* board);
     };
     class Bot
     {
@@ -209,4 +208,5 @@ namespace chess
         void step();
     };
 }
+std::ostream& operator<<(std::ostream& out, Board* board);
 #endif

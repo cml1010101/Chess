@@ -198,6 +198,9 @@ namespace chess
     public:
         Bot() = default;
         virtual Move* findMove(Board* board) = 0;
+        virtual void handlePrint(Board* board)
+        {
+        }
     };
     class Game
     {

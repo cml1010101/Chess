@@ -47,7 +47,7 @@ bool Rook::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row][loc.col + i]) return false;
             }
@@ -56,7 +56,7 @@ bool Rook::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row][loc.col - i]) return false;
             }
@@ -68,7 +68,7 @@ bool Rook::canMove(Board* board, Move* move)
     {
         if (dRow > 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row + i][loc.col]) return false;
             }
@@ -77,7 +77,7 @@ bool Rook::canMove(Board* board, Move* move)
         }
         else if (dRow < 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row - i][loc.col]) return false;
             }
@@ -135,37 +135,37 @@ bool Bishop::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row + i][loc.col + i]) return false;
             }
-            return board->grid[loc.row][move->dest.col] == NULL
-                || board->grid[loc.row][move->dest.col]->player != player;
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
         }
         else if (dCol < 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row + i][loc.col - i]) return false;
             }
-            return board->grid[loc.row][move->dest.col] == NULL
-                || board->grid[loc.row][move->dest.col]->player != player;
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
         }
     }
-    else if (dCol < 0)
+    else if (dRow < 0)
     {
-        if (dRow > 0)
+        if (dCol > 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row - i][loc.col + i]) return false;
             }
             return board->grid[move->dest.row][move->dest.col] == NULL
                 || board->grid[move->dest.row][move->dest.col]->player != player;
         }
-        else if (dRow < 0)
+        else if (dCol < 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row - i][loc.col - i]) return false;
             }
@@ -196,7 +196,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row][loc.col + i]) return false;
             }
@@ -205,7 +205,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row][loc.col - i]) return false;
             }
@@ -217,7 +217,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dRow > 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row + i][loc.col]) return false;
             }
@@ -226,7 +226,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dRow < 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row - i][loc.col]) return false;
             }
@@ -239,7 +239,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row + i][loc.col + i]) return false;
             }
@@ -248,7 +248,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 0; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol) - 1; i++)
             {
                 if (board->grid[loc.row + i][loc.col - i]) return false;
             }
@@ -256,20 +256,20 @@ bool Queen::canMove(Board* board, Move* move)
                 || board->grid[loc.row][move->dest.col]->player != player;
         }
     }
-    else if (dCol < 0)
+    else if (dRow < 0)
     {
-        if (dRow > 0)
+        if (dCol > 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row - i][loc.col + i]) return false;
             }
             return board->grid[move->dest.row][move->dest.col] == NULL
                 || board->grid[move->dest.row][move->dest.col]->player != player;
         }
-        else if (dRow < 0)
+        else if (dCol < 0)
         {
-            for (size_t i = 0; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow) - 1; i++)
             {
                 if (board->grid[loc.row - i][loc.col - i]) return false;
             }
@@ -369,6 +369,7 @@ bool Board::canMove(Move* move, bool checkForCheck)
     {
         return false;
     }
+    if (grid[move->src.row][move->src.col]->player != next) return false;
     if (grid[move->src.row][move->src.col]->canMove(this, move))
     {
         if (!checkForCheck) return true;

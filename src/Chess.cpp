@@ -47,7 +47,7 @@ bool Rook::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row][loc.col + i]) return false;
             }
@@ -56,7 +56,7 @@ bool Rook::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row][loc.col - i]) return false;
             }
@@ -68,7 +68,7 @@ bool Rook::canMove(Board* board, Move* move)
     {
         if (dRow > 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row + i][loc.col]) return false;
             }
@@ -77,7 +77,7 @@ bool Rook::canMove(Board* board, Move* move)
         }
         else if (dRow < 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row - i][loc.col]) return false;
             }
@@ -103,7 +103,9 @@ vector<Move*> Rook::getPossibleMoves(Board* board, bool checkForCheck)
 bool Knight::canMove(Board* board, Move* move)
 {
     int dRow = abs(move->dest.row - loc.row), dCol = abs(move->dest.col - loc.col);
-    return (dRow == 1 && dCol == 2) || (dRow == 2 && dCol == 1);
+    return ((dRow == 1 && dCol == 2) || (dRow == 2 && dCol == 1))
+        && (board->grid[move->dest.row][move->dest.col] == NULL
+        || board->grid[move->dest.row][move->dest.col]->player != board->next);
 }
 vector<Move*> Knight::getPossibleMoves(Board* board, bool checkForCheck)
 {
@@ -135,7 +137,7 @@ bool Bishop::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row + i][loc.col + i]) return false;
             }
@@ -144,7 +146,7 @@ bool Bishop::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row + i][loc.col - i]) return false;
             }
@@ -156,7 +158,7 @@ bool Bishop::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row - i][loc.col + i]) return false;
             }
@@ -165,7 +167,7 @@ bool Bishop::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row - i][loc.col - i]) return false;
             }
@@ -196,7 +198,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row][loc.col + i]) return false;
             }
@@ -205,7 +207,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row][loc.col - i]) return false;
             }
@@ -217,7 +219,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dRow > 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row + i][loc.col]) return false;
             }
@@ -226,7 +228,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dRow < 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row - i][loc.col]) return false;
             }
@@ -239,7 +241,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row + i][loc.col + i]) return false;
             }
@@ -248,7 +250,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 1; i < abs(dCol) - 1; i++)
+            for (size_t i = 1; i < abs(dCol); i++)
             {
                 if (board->grid[loc.row + i][loc.col - i]) return false;
             }
@@ -260,7 +262,7 @@ bool Queen::canMove(Board* board, Move* move)
     {
         if (dCol > 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row - i][loc.col + i]) return false;
             }
@@ -269,7 +271,7 @@ bool Queen::canMove(Board* board, Move* move)
         }
         else if (dCol < 0)
         {
-            for (size_t i = 1; i < abs(dRow) - 1; i++)
+            for (size_t i = 1; i < abs(dRow); i++)
             {
                 if (board->grid[loc.row - i][loc.col - i]) return false;
             }
@@ -296,7 +298,9 @@ vector<Move*> Queen::getPossibleMoves(Board* board, bool checkForCheck)
 bool King::canMove(Board* board, Move* move)
 {
     int dRow = abs(move->dest.row - loc.row), dCol = abs(move->dest.col - loc.col);
-    return (dRow == 0 || dRow == 1) && (dCol == 0 || dCol == 1);
+    return (dRow == 0 || dRow == 1) && (dCol == 0 || dCol == 1)
+        && (board->grid[move->dest.row][move->dest.col] == NULL
+        || board->grid[move->dest.row][move->dest.col]->player != board->next);
 }
 vector<Move*> King::getPossibleMoves(Board* board, bool checkForCheck)
 {
@@ -385,6 +389,7 @@ void Board::playMove(Move* move)
     if (!(move->src) && !(move->dest))
     {
         winner = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+        return;
     }
     grid[move->src.row][move->src.col]->loc = move->dest;
     grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
@@ -418,8 +423,10 @@ vector<Move*> Board::getPossibleMoves(bool checkForCheck)
     for (auto piece : pieces)
     {
         auto possibleMoves = piece->getPossibleMoves(this, checkForCheck);
-        moves.resize(moves.size() + possibleMoves.size());
-        moves.insert(moves.end(), possibleMoves.begin(), possibleMoves.end());
+        for (auto move : possibleMoves)
+        {
+            moves.push_back(move);
+        }
     }
     return moves;
 }
@@ -447,6 +454,7 @@ Board* Board::clone()
     clone->next = next;
     clone->kingBlack = kingBlack;
     clone->kingWhite = kingWhite;
+    clone->winner = winner;
     return clone;
 }
 Piece* Pawn::clone()
@@ -537,4 +545,69 @@ ostream& operator<<(ostream& out, Board board)
     }
     out << "\tABCDEFGH\n";
     return out;
+}
+bool Board::isDraw()
+{
+    return getPieces(PLAYER_WHITE).size() == 1 && getPieces(PLAYER_BLACK).size() == 1;
+}
+double Board::getScore()
+{
+    double difference = 0;
+    auto piecesNext = getPieces(next);
+    auto piecesOther = getPieces(next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
+    for (auto piece : piecesNext)
+    {
+        difference += piece->value;
+    }
+    for (auto piece : piecesOther)
+    {
+        difference -= piece->value;
+    }
+    return difference;
+}
+double Board::getBestResult(int maxDepth)
+{
+    if (winner != -1)
+    {
+        return winner == next ? 0x1000 : -0x1000;
+    }
+    if (maxDepth == 0)
+    {
+        return getScore();
+    }
+    double bestSoFar = -0x1000;
+    auto moves = getPossibleMoves(true);
+    for (auto move : moves)
+    {
+        Board* nextBoard = clone();
+        nextBoard->playMove(move);
+        double bestResult = -nextBoard->getBestResult(maxDepth - 1);
+        if (bestSoFar < bestResult) bestSoFar = bestResult;
+    }
+    return bestSoFar;
+}
+MinimaxBot::MinimaxBot(int maxDepth)
+{
+    this->maxDepth = maxDepth;
+}
+Move* MinimaxBot::findMove(Board* board)
+{
+    auto possibleMoves = board->getPossibleMoves(true);
+    if (possibleMoves.size() == 0 || board->isDraw()) return Move::resign();
+    std::vector<std::pair<double, Move*>> moveScores = {};
+    for (auto move : possibleMoves)
+    {
+        Board* nextBoard = board->clone();
+        nextBoard->playMove(move);
+        moveScores.push_back({-nextBoard->getBestResult(maxDepth), move});
+    }
+    sort(moveScores.begin(), moveScores.end());
+    double idealScore = moveScores[moveScores.size() - 1].first;
+    std::vector<Move*> idealMoves = {};
+    for (int i = moveScores.size() - 1; i >= 0; i--)
+    {
+        if (moveScores[i].first == idealScore) idealMoves.push_back(moveScores[i].second);
+    }
+    cout << "Found move with score of " << idealScore << endl;
+    return idealMoves[rand() % idealMoves.size()];
 }

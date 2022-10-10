@@ -189,9 +189,12 @@ namespace chess
         bool canMove(Move* move, bool checkForCheck = true);
         void playMove(Move* move);
         std::vector<Piece*> getPieces(Player player);
-        std::vector<Move*> getPossibleMoves(bool checkForCheck = true);
+        std::vector<Move*> getPossibleMoves(bool checkForCheck);
         bool inCheck();
+        bool isDraw();
         Board* clone();
+        double getScore();
+        double getBestResult(int maxDepth);
     };
     class Bot
     {
@@ -216,6 +219,14 @@ namespace chess
         Board* getCurrentBoard();
         void playMove(Move* move);
         void step();
+    };
+    class MinimaxBot : public Bot
+    {
+    private:
+        int maxDepth;
+    public:
+        MinimaxBot(int maxDepth);
+        Move* findMove(Board* board);
     };
 }
 std::ostream& operator<<(std::ostream& out, chess::Board board);

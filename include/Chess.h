@@ -201,6 +201,9 @@ namespace chess
         virtual void handlePrint(Board* board)
         {
         }
+        virtual void handleWinner(int winner)
+        {
+        }
     };
     class Game
     {

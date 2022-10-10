@@ -243,8 +243,8 @@ bool Queen::canMove(Board* board, Move* move)
             {
                 if (board->grid[loc.row + i][loc.col + i]) return false;
             }
-            return board->grid[loc.row][move->dest.col] == NULL
-                || board->grid[loc.row][move->dest.col]->player != player;
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
         }
         else if (dCol < 0)
         {
@@ -252,8 +252,8 @@ bool Queen::canMove(Board* board, Move* move)
             {
                 if (board->grid[loc.row + i][loc.col - i]) return false;
             }
-            return board->grid[loc.row][move->dest.col] == NULL
-                || board->grid[loc.row][move->dest.col]->player != player;
+            return board->grid[move->dest.row][move->dest.col] == NULL
+                || board->grid[move->dest.row][move->dest.col]->player != player;
         }
     }
     else if (dRow < 0)

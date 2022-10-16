@@ -196,6 +196,7 @@ namespace chess
         double getScore();
         double getBestResult(int maxDepth);
     };
+    class Game;
     class Bot
     {
     public:
@@ -208,6 +209,9 @@ namespace chess
         {
         }
         virtual void setPlayer(Player player)
+        {
+        }
+        virtual void setGameReference(Game* gameReference)
         {
         }
     };

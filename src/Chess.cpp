@@ -488,6 +488,8 @@ Game::Game(Bot* whiteBot, Bot* blackBot)
     bots = {{PLAYER_WHITE, whiteBot}, {PLAYER_BLACK, blackBot}};
     whiteBot->setPlayer(PLAYER_WHITE);
     blackBot->setPlayer(PLAYER_BLACK);
+    whiteBot->setGameReference(this);
+    blackBot->setGameReference(this);
 }
 Board* Game::getCurrentBoard()
 {

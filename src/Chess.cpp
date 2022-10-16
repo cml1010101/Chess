@@ -622,7 +622,7 @@ Move* MinimaxBot::findMove(Board* board)
 }
 uint8_t* Board::serialize()
 {
-    uint8_t* serial = new uint8_t[64];
+    uint8_t* serial = new uint8_t[65];
     memset(serial, 0, 64);
     for (size_t i = 0; i < 8; i++)
     {
@@ -632,6 +632,7 @@ uint8_t* Board::serialize()
                 (grid[i][j]->player << 6) | grid[i][j]->type;
         }
     }
+    serial[64] = next;
     return serial;
 }
 Board* Board::fromSerial(uint8_t* serial)
@@ -678,5 +679,6 @@ Board* Board::fromSerial(uint8_t* serial)
             }
         }
     }
+    board->next = (Player)serial[64];
     return board;
 }

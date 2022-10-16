@@ -9,4 +9,4 @@ deploy: all
 	cp -r include /usr/include/chess
 	cp libchess.a /usr/lib
 %.o: %.cpp
-	g++ -c $< -o $@ -g
+	g++ -c $< -o $@ -g -I/usr/include/torch/csrc/api/include

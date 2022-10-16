@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <ostream>
+#include <torch/torch.h>
 namespace chess
 {
     enum Player
@@ -197,6 +198,7 @@ namespace chess
         double getBestResult(int maxDepth);
         uint8_t* serialize();
         static Board* fromSerial(uint8_t* serial);
+
     };
     class Game;
     class Bot

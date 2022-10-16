@@ -242,7 +242,7 @@ namespace chess
     class NeuralBot : public Bot
     {
     private:
-        torch::
+        torch::nn::Model model;
     public:
         NeuralBot(int maxDepth);
         Move* findMove(Board* board);

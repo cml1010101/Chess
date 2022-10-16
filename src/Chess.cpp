@@ -504,7 +504,11 @@ void Game::playMove(Move* move)
 }
 void Game::step()
 {
-    playMove(bots[getCurrentBoard()->next]->findMove(getCurrentBoard()));
+    if (getCurrentBoard()->isDraw())
+    {
+        playMove(Move::resign());
+    }
+    else playMove(bots[getCurrentBoard()->next]->findMove(getCurrentBoard()));
 }
 ostream& operator<<(ostream& out, Board board)
 {

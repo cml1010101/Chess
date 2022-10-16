@@ -195,6 +195,8 @@ namespace chess
         Board* clone();
         double getScore();
         double getBestResult(int maxDepth);
+        uint8_t* serialize();
+        static Board* fromSerial(uint8_t* serial);
     };
     class Game;
     class Bot

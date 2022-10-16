@@ -1,6 +1,7 @@
 #include "../include/Chess.h"
 #include <math.h>
 #include <algorithm>
+#include <memory.h>
 #include <iostream>
 using namespace chess;
 using namespace std;
@@ -618,4 +619,64 @@ Move* MinimaxBot::findMove(Board* board)
     }
     cout << "Found move with score of " << idealScore << endl;
     return idealMoves[rand() % idealMoves.size()];
+}
+uint8_t* Board::serialize()
+{
+    uint8_t* serial = new uint8_t[64];
+    memset(serial, 0, 64);
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (grid[i][j]) serial[i * 8 + j] = (1 << 7) |
+                (grid[i][j]->player << 6) | grid[i][j]->type;
+        }
+    }
+    return serial;
+}
+Board* Board::fromSerial(uint8_t* serial)
+{
+    Board* board = new Board();
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (serial[i * 8 + j] == 0) board->grid[i][j] = NULL;
+            else
+            {
+                switch (serial[i * 8 + j] & 0b111)
+                {
+                case PIECE_PAWN:
+                    board->grid[i][j] = new Pawn(Point(i, j), 
+                        (Player)((serial[i * 8 + j] & (1 << 6)) >> 6));
+                    break;
+                case PIECE_ROOK:
+                    board->grid[i][j] = new Rook(Point(i, j), 
+                        (Player)((serial[i * 8 + j] & (1 << 6)) >> 6));
+                    break;
+                case PIECE_KNIGHT:
+                    board->grid[i][j] = new Knight(Point(i, j), 
+                        (Player)((serial[i * 8 + j] & (1 << 6)) >> 6));
+                    break;
+                case PIECE_BISHOP:
+                    board->grid[i][j] = new Bishop(Point(i, j), 
+                        (Player)((serial[i * 8 + j] & (1 << 6)) >> 6));
+                    break;
+                case PIECE_QUEEN:
+                    board->grid[i][j] = new Queen(Point(i, j), 
+                        (Player)((serial[i * 8 + j] & (1 << 6)) >> 6));
+                    break;
+                case PIECE_KING:
+                    board->grid[i][j] = new King(Point(i, j), 
+                        (Player)((serial[i * 8 + j] & (1 << 6)) >> 6));
+                    ((Player)((serial[i * 8 + j] & (1 << 6)) >> 6) == PLAYER_WHITE 
+                        ? board->kingWhite : board->kingBlack) = Point(i, j);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+    return board;
 }

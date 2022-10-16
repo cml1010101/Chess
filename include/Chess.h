@@ -207,6 +207,9 @@ namespace chess
         virtual void handleWinner(int winner)
         {
         }
+        virtual void setPlayer(Player player)
+        {
+        }
     };
     class Game
     {

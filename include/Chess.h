@@ -198,7 +198,7 @@ namespace chess
         double getBestResult(int maxDepth);
         uint8_t* serialize();
         static Board* fromSerial(uint8_t* serial);
-
+        torch::Tensor encode();
     };
     class Game;
     class Bot
@@ -239,6 +239,14 @@ namespace chess
         MinimaxBot(int maxDepth);
         Move* findMove(Board* board);
     };
+    class NeuralBot : public Bot
+    {
+    private:
+        torch::
+    public:
+        NeuralBot(int maxDepth);
+        Move* findMove(Board* board);
+    }
 }
 std::ostream& operator<<(std::ostream& out, chess::Board board);
 #endif

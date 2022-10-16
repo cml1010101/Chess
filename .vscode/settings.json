@@ -1,3 +1,4 @@
 {
-    "git.useEditorAsCommitInput": false
+    "git.useEditorAsCommitInput": false,
+    "C_Cpp.errorSquiggles": "Enabled"
 }

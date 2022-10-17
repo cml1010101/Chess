@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <memory.h>
 #include <iostream>
+#include <boost/regex.hpp>
 using namespace chess;
 using namespace std;
 bool Pawn::canMove(Board* board, Move* move)
@@ -299,6 +300,27 @@ vector<Move*> Queen::getPossibleMoves(Board* board, bool checkForCheck)
 bool King::canMove(Board* board, Move* move)
 {
     int dRow = abs(move->dest.row - loc.row), dCol = abs(move->dest.col - loc.col);
+    if (move->src.col == 4 && move->src.row == starting_row(player)
+        && move->dest.col == 6 && move->dest.row == starting_row(player))
+    {
+        return move->src == (player == PLAYER_WHITE ? board->kingWhite : board->kingBlack)
+            && (board->grid[move->dest.row][move->dest.col] == NULL)
+            && (board->grid[starting_row(player)][5] == NULL)
+            && (board->grid[starting_row(player)][6] == NULL)
+            && (board->grid[starting_row(player)][7] != NULL)
+            && (board->grid[starting_row(player)][7]->type == PIECE_ROOK);
+    }
+    if (move->src.col == 4 && move->src.row == starting_row(player)
+        && move->dest.col == 2 && move->dest.row == starting_row(player))
+    {
+        return move->src == (player == PLAYER_WHITE ? board->kingWhite : board->kingBlack)
+            && (board->grid[move->dest.row][move->dest.col] == NULL)
+            && (board->grid[starting_row(player)][3] == NULL)
+            && (board->grid[starting_row(player)][2] == NULL)
+            && (board->grid[starting_row(player)][1] == NULL)
+            && (board->grid[starting_row(player)][0] != NULL)
+            && (board->grid[starting_row(player)][0]->type == PIECE_ROOK);
+    }
     return (dRow == 0 || dRow == 1) && (dCol == 0 || dCol == 1)
         && (board->grid[move->dest.row][move->dest.col] == NULL
         || board->grid[move->dest.row][move->dest.col]->player != board->next);
@@ -323,6 +345,10 @@ vector<Move*> King::getPossibleMoves(Board* board, bool checkForCheck)
     if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
     move = new Move(loc, loc + Point(-1, -1));
     if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(Point(starting_row(player), 4), Point(starting_row(player), 6));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
+    move = new Move(Point(starting_row(player), 4), Point(starting_row(player), 2));
+    if (board->canMove(move, checkForCheck)) moves.emplace_back(move);
     return moves;
 }
 Board::Board()
@@ -337,16 +363,16 @@ Board::Board()
     grid[0][0] = new Rook(Point(0, 0), PLAYER_WHITE);
     grid[0][1] = new Knight(Point(0, 1), PLAYER_WHITE);
     grid[0][2] = new Bishop(Point(0, 2), PLAYER_WHITE);
-    grid[0][3] = new King(Point(0, 3), PLAYER_WHITE);
-    grid[0][4] = new Queen(Point(0, 4), PLAYER_WHITE);
+    grid[0][4] = new King(Point(0, 4), PLAYER_WHITE);
+    grid[0][3] = new Queen(Point(0, 3), PLAYER_WHITE);
     grid[0][5] = new Bishop(Point(0, 5), PLAYER_WHITE);
     grid[0][6] = new Knight(Point(0, 6), PLAYER_WHITE);
     grid[0][7] = new Rook(Point(0, 7), PLAYER_WHITE);
     grid[7][0] = new Rook(Point(7, 0), PLAYER_BLACK);
     grid[7][1] = new Knight(Point(7, 1), PLAYER_BLACK);
     grid[7][2] = new Bishop(Point(7, 2), PLAYER_BLACK);
-    grid[7][3] = new King(Point(7, 3), PLAYER_BLACK);
-    grid[7][4] = new Queen(Point(7, 4), PLAYER_BLACK);
+    grid[7][4] = new King(Point(7, 4), PLAYER_BLACK);
+    grid[7][3] = new Queen(Point(7, 3), PLAYER_BLACK);
     grid[7][5] = new Bishop(Point(7, 5), PLAYER_BLACK);
     grid[7][6] = new Knight(Point(7, 6), PLAYER_BLACK);
     grid[7][7] = new Rook(Point(7, 7), PLAYER_BLACK);
@@ -356,8 +382,8 @@ Board::Board()
         grid[6][i] = new Pawn(Point(6, i), PLAYER_BLACK);
     }
     next = PLAYER_WHITE;
-    kingWhite = Point(0, 3);
-    kingBlack = Point(7, 3);
+    kingWhite = Point(0, 4);
+    kingBlack = Point(7, 4);
     winner = -1;
 }
 bool Board::canMove(Move* move, bool checkForCheck)
@@ -392,14 +418,28 @@ void Board::playMove(Move* move)
         winner = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
         return;
     }
-    grid[move->src.row][move->src.col]->loc = move->dest;
-    grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
-    grid[move->src.row][move->src.col] = NULL;
-    if (grid[move->dest.row][move->dest.col]->type == PIECE_KING)
+    if (grid[move->src.row][move->src.col]->type == PIECE_KING)
     {
+        if (move->src == Point(starting_row(next), 4) 
+            && move->dest == Point(starting_row(next), 6))
+        {
+            grid[move->dest.row][5] = grid[move->src.row][7];
+            grid[move->src.row][7] = NULL;
+            grid[move->src.row][5]->loc = Point(move->src.row, 5);
+        }
+        else if (move->src == Point(starting_row(next), 4)
+            && move->dest == Point(starting_row(next), 2))
+        {
+            grid[move->dest.row][3] = grid[move->src.row][0];
+            grid[move->src.row][0] = NULL;
+            grid[move->src.row][3]->loc = Point(move->src.row, 3);
+        }
         Point& king = (next == PLAYER_WHITE) ? kingWhite : kingBlack;
         king = move->dest;
     }
+    grid[move->src.row][move->src.col]->loc = move->dest;
+    grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
+    grid[move->src.row][move->src.col] = NULL;
     next = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 }
 vector<Piece*> Board::getPieces(Player player)
@@ -681,4 +721,133 @@ Board* Board::fromSerial(uint8_t* serial)
     }
     board->next = (Player)serial[64];
     return board;
+}
+using namespace torch;
+using namespace nn;
+Tensor Board::encode()
+{
+    Tensor encoded = torch::empty({6, 8, 8});
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (grid[i][j]) encoded[grid[i][j]->type][i][j] = 
+                grid[i][j]->player == next ? 1 : -1;
+        }
+    }
+    return encoded;
+}
+NeuralBot::NeuralBot()
+{
+    model = Sequential(
+        Conv2d(Conv2dOptions(6, 24, 3)),
+        Flatten(FlattenOptions().start_dim(0).end_dim(-1)),
+        Linear(LinearOptions(864, 864)),
+        Sigmoid(),
+        Linear(LinearOptions(864, 1)),
+        Tanh()
+    );
+}
+Move* NeuralBot::findMove(Board* board)
+{
+    auto moves = board->getPossibleMoves(true);
+    Move* highestScoringMove;
+    double highestScore = -1;
+    for (auto move : moves)
+    {
+        Board* nextState = board->clone();
+        nextState->playMove(move);
+        double score = model->forward(nextState->encode()).item<double>();
+        if (score > highestScore)
+        {
+            highestScoringMove = move;
+            highestScore = score;
+        }
+    }
+    return highestScoringMove;
+}
+const string TIE = "1/2-1/2";
+using namespace boost;
+const regex numStatement = regex("\\d."),
+    moveStatement = regex("(?<type>[BNKQR]?)x?(?<pointa>[a-g]\\d)?(?<pointb>[a-g]\\d)\\+?");
+istream& operator>>(istream& in, chess::Game& game)
+{
+    game.boards = {new Board()};
+    game.moves = {};
+    while (true)
+    {
+        string token;
+        getline(in, token);
+        cout << token << endl;
+        if (token == "" || token.find_first_not_of(' ') == -1)
+        {
+            break;
+        }
+    }
+    bool comment = false;
+    string contents;
+    getline(in, contents);
+    cout << "Contents = " << contents << endl;
+    stringstream stream(contents);
+    while (true)
+    {
+        string statement;
+        stream >> statement;
+        if (statement.empty()) break;
+        if (statement.find("{") || comment)
+        {
+            comment = true;
+            if (statement.find("}")) comment = false;
+            continue;
+        }
+        if (regex_match(statement, numStatement)) continue;
+        if (statement.substr(0, 7) == "1/2-1/2")
+        {
+            break;
+        }
+        if (statement.substr(0, 3) == "1-0")
+        {
+            game.getCurrentBoard()->winner = 0;
+            break;
+        }
+        if (statement.substr(0, 3) == "0-1")
+        {
+            game.getCurrentBoard()->winner = 1;
+            break;
+        }
+        if (statement == "O-O-O")
+        {
+            Move* move = new Move(
+                Point(starting_row(game.getCurrentBoard()->next), 4),
+                Point(starting_row(game.getCurrentBoard()->next), 1)
+            );
+            Board* newBoard = game.getCurrentBoard()->clone();
+            newBoard->playMove(move);
+            game.moves.push_back(move);
+            game.boards.push_back(newBoard);
+            continue;
+        }
+        if (statement == "O-O")
+        {
+            Move* move = new Move(
+                Point(starting_row(game.getCurrentBoard()->next), 4),
+                Point(starting_row(game.getCurrentBoard()->next), 6)
+            );
+            Board* newBoard = game.getCurrentBoard()->clone();
+            newBoard->playMove(move);
+            game.moves.push_back(move);
+            game.boards.push_back(newBoard);
+            continue;
+        }
+        else if (regex_match(statement, moveStatement))
+        {
+            smatch match;
+            regex_search(statement, match, moveStatement);
+            for (auto entry : match)
+            {
+                cout << entry << endl;
+            }
+        }
+    }
+    return in;
 }

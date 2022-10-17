@@ -1,5 +1,5 @@
-#ifndef CHESSUTILS_H
-#define CHESSUTILS_H
+#ifndef CHESS_H
+#define CHESS_H
 #include <vector>
 #include <map>
 #include <ostream>
@@ -242,11 +242,13 @@ namespace chess
     class NeuralBot : public Bot
     {
     private:
-        torch::nn::Model model;
+        torch::nn::Sequential model;
     public:
-        NeuralBot(int maxDepth);
+        NeuralBot();
         Move* findMove(Board* board);
-    }
+    };
 }
 std::ostream& operator<<(std::ostream& out, chess::Board board);
+std::istream& operator>>(std::istream& in, chess::Game& game);
+std::ostream& operator<<(std::ostream& out, chess::Game game);
 #endif

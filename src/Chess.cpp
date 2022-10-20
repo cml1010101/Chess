@@ -786,10 +786,12 @@ istream& operator>>(istream& in, chess::Game& game)
     game.boards = {new Board()};
     game.moves = {};
     string token;
+    bool b = false;
     while (true)
     {
         getline(in, token);
-        if (token.empty()) break;
+        if (token.empty() && b) break;
+        b = true;
     }
     bool comment = false;
     while (true)
@@ -904,7 +906,7 @@ string Game::toPGN()
     stream << "[Date \"2000.01.01\"]\n";
     stream << "[Round \"" << moves.size() << "\"]\n";
     stream << "[White \"Unknown\"]\n";
-    stream << "[Black \"Uknown\"]\n";
+    stream << "[Black \"Unknown\"]\n";
     string result = "*";
     switch (getCurrentBoard()->winner)
     {

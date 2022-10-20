@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <memory.h>
 #include <iostream>
-#include <boost/regex.hpp>
 using namespace chess;
 using namespace std;
 bool Pawn::canMove(Board* board, Move* move)
@@ -24,6 +23,7 @@ bool Pawn::canMove(Board* board, Move* move)
     else if (dRow == 2 && dCol == 0)
     {
         return board->grid[move->dest.row][move->dest.col] == NULL
+            && board->grid[move->dest.row - direction(player)][move->dest.col] == NULL
             && move->src.row == (starting_row(player) + direction(player));
     }
     return false;
@@ -384,7 +384,7 @@ Board::Board()
     next = PLAYER_WHITE;
     kingWhite = Point(0, 4);
     kingBlack = Point(7, 4);
-    winner = -1;
+    winner = WINNER_NONE;
 }
 bool Board::canMove(Move* move, bool checkForCheck)
 {
@@ -413,10 +413,14 @@ bool Board::canMove(Move* move, bool checkForCheck)
 }
 void Board::playMove(Move* move)
 {
-    if (!(move->src) && !(move->dest))
+    if (move->isResign)
     {
-        winner = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+        winner = (next == PLAYER_WHITE) ? WINNER_BLACK : WINNER_WHITE;
         return;
+    }
+    if (move->isDraw)
+    {
+        winner = WINNER_DRAW;
     }
     if (grid[move->src.row][move->src.col]->type == PIECE_KING)
     {
@@ -440,7 +444,14 @@ void Board::playMove(Move* move)
     grid[move->src.row][move->src.col]->loc = move->dest;
     grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];
     grid[move->src.row][move->src.col] = NULL;
-    next = next == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+    if (grid[move->dest.row][move->dest.col]->type == PIECE_PAWN)
+    {
+        if (move->dest.row == starting_row(other(next)))
+        {
+            grid[move->dest.row][move->dest.col] = new Queen(move->dest, next);
+        }
+    }
+    next = other(next);
 }
 vector<Piece*> Board::getPieces(Player player)
 {
@@ -597,7 +608,7 @@ ostream& operator<<(ostream& out, Board board)
 }
 bool Board::isDraw()
 {
-    return getPieces(PLAYER_WHITE).size() == 1 && getPieces(PLAYER_BLACK).size() == 1;
+    return getPieces(next).size() == 0 || getPieces(next).size() == 1;
 }
 double Board::getScore()
 {
@@ -618,7 +629,7 @@ double Board::getBestResult(int maxDepth)
 {
     if (winner != -1)
     {
-        return winner == next ? 0x1000 : -0x1000;
+        return winner == (Winner)(int)next ? 0x1000 : -0x1000;
     }
     if (maxDepth == 0)
     {
@@ -769,85 +780,206 @@ Move* NeuralBot::findMove(Board* board)
 const string TIE = "1/2-1/2";
 using namespace boost;
 const regex numStatement = regex("\\d."),
-    moveStatement = regex("(?<type>[BNKQR]?)x?(?<pointa>[a-g]\\d)?(?<pointb>[a-g]\\d)\\+?");
+    moveStatement = regex("([BNKQR]?)(([a-h])?(\\d)?)(x?)([a-h]\\d)(\\+?)");
 istream& operator>>(istream& in, chess::Game& game)
 {
     game.boards = {new Board()};
     game.moves = {};
+    string token;
     while (true)
     {
-        string token;
         getline(in, token);
-        cout << token << endl;
-        if (token == "" || token.find_first_not_of(' ') == -1)
-        {
-            break;
-        }
+        if (token.empty()) break;
     }
     bool comment = false;
-    string contents;
-    getline(in, contents);
-    cout << "Contents = " << contents << endl;
-    stringstream stream(contents);
     while (true)
     {
+        if (game.getCurrentBoard()->winner != WINNER_NONE) break;
         string statement;
-        stream >> statement;
+        getline(in, statement, ' ');
         if (statement.empty()) break;
-        if (statement.find("{") || comment)
+        if ((statement.find("{") != -1) || comment)
         {
             comment = true;
             if (statement.find("}")) comment = false;
             continue;
         }
-        if (regex_match(statement, numStatement)) continue;
         if (statement.substr(0, 7) == "1/2-1/2")
         {
+            game.getCurrentBoard()->winner == WINNER_BLACK;
             break;
         }
         if (statement.substr(0, 3) == "1-0")
         {
-            game.getCurrentBoard()->winner = 0;
+            game.getCurrentBoard()->winner = WINNER_WHITE;
             break;
         }
         if (statement.substr(0, 3) == "0-1")
         {
-            game.getCurrentBoard()->winner = 1;
+            game.getCurrentBoard()->winner = WINNER_BLACK;
             break;
         }
         if (statement == "O-O-O")
         {
-            Move* move = new Move(
+            game.playMove(new Move(
                 Point(starting_row(game.getCurrentBoard()->next), 4),
-                Point(starting_row(game.getCurrentBoard()->next), 1)
-            );
-            Board* newBoard = game.getCurrentBoard()->clone();
-            newBoard->playMove(move);
-            game.moves.push_back(move);
-            game.boards.push_back(newBoard);
+                Point(starting_row(game.getCurrentBoard()->next), 2)
+            ));
             continue;
         }
-        if (statement == "O-O")
+        if (statement.find("O-O") != -1)
         {
-            Move* move = new Move(
+            game.playMove(new Move(
                 Point(starting_row(game.getCurrentBoard()->next), 4),
                 Point(starting_row(game.getCurrentBoard()->next), 6)
-            );
-            Board* newBoard = game.getCurrentBoard()->clone();
-            newBoard->playMove(move);
-            game.moves.push_back(move);
-            game.boards.push_back(newBoard);
+            ));
             continue;
         }
-        else if (regex_match(statement, moveStatement))
+        boost::smatch matchInfo;
+        if (regex_match(statement, matchInfo, moveStatement))
         {
-            smatch match;
-            regex_search(statement, match, moveStatement);
-            for (auto entry : match)
-            {
-                cout << entry << endl;
-            }
+            game.playMove(Move::parse(matchInfo, game.getCurrentBoard()));
         }
     }
     return in;
+}
+Move* Move::parse(smatch match, Board* board)
+{
+    PieceType type = PIECE_PAWN;
+    string typeStr = string(match[1].begin(), match[1].end());
+    if (typeStr == "R")
+    {
+        type = PIECE_ROOK;
+    }
+    else if (typeStr == "N")
+    {
+        type = PIECE_KNIGHT;
+    }
+    else if (typeStr == "B")
+    {
+        type = PIECE_BISHOP;
+    }
+    else if (typeStr == "Q")
+    {
+        type = PIECE_QUEEN;
+    }
+    else if (typeStr == "K")
+    {
+        type = PIECE_KING;
+    }
+    string srcRowStr = string(match[4].begin(), match[4].end());
+    int srcRow = srcRowStr.empty() ? -1 : srcRowStr[0] - '1';
+    string srcColStr = string(match[3].begin(), match[3].end());
+    int srcCol = srcColStr.empty() ? -1 : srcColStr[0] - 'a';
+    string destStr = string(match[6].begin(), match[6].end());
+    Point dest = Point::parse(destStr);
+    auto possiblePieces = board->getPieces(board->next, type);
+    for (auto piece : possiblePieces)
+    {
+        if (piece->loc.col != srcCol && srcCol != -1) continue;
+        if (piece->loc.row != srcRow && srcRow != -1) continue;
+        Move* move = new Move(piece->loc, dest);
+        if (board->canMove(move)) return move;
+    }
+    return NULL;
+}
+vector<Piece*> Board::getPieces(Player player, PieceType type)
+{
+    vector<Piece*> pieces;
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (grid[i][j] && grid[i][j]->player == player && grid[i][j]->type == type)
+                pieces.push_back(grid[i][j]);
+        }
+    }
+    return pieces;
+}
+string Game::toPGN()
+{
+    stringstream stream;
+    stream << "[Event \"None\"]\n";
+    stream << "[Site \"Unknown\"]\n";
+    stream << "[Date \"2000.01.01\"]\n";
+    stream << "[Round \"" << moves.size() << "\"]\n";
+    stream << "[White \"Unknown\"]\n";
+    stream << "[Black \"Uknown\"]\n";
+    string result = "*";
+    switch (getCurrentBoard()->winner)
+    {
+    case WINNER_DRAW:
+        result = "1/2-1/2";
+        break;
+    case WINNER_WHITE:
+        result = "1-0";
+        break;
+    case WINNER_BLACK:
+        result = "0-1";
+        break;
+    default:
+        break;
+    }
+    stream << "[Result \"" << result << "\"]\n";
+    return stream.str();
+}
+string Move::toSAN(Board* board)
+{
+    string typeStr = "";
+    PieceType type = board->grid[src.row][src.col]->type;
+    if (type == PIECE_ROOK)
+    {
+        typeStr = "R";
+    }
+    if (type == PIECE_KNIGHT)
+    {
+        typeStr = "N";
+    }
+    if (type == PIECE_BISHOP)
+    {
+        typeStr = "B";
+    }
+    if (type == PIECE_QUEEN)
+    {
+        typeStr = "Q";
+    }
+    if (type == PIECE_KING)
+    {
+        typeStr = "K";
+    }
+    string captureStr = board->grid[dest.row][dest.col] ? "x" : "";
+    string rowStr = "";
+    string colStr = "";
+    auto similarPieces = board->getPieces(board->next, type);
+    for (auto piece : similarPieces)
+    {
+        if (piece->loc == src) continue;
+        Move* move = new Move(piece->loc, dest);
+        if (board->canMove(move))
+        {
+            if (piece->loc.col == src.col)
+            {
+                rowStr = to_string(piece->loc.row);
+            }
+            else
+            {
+                colStr = 'a' + piece->loc.col;
+            }
+        }
+    }
+    string checkString = "";
+    Board* next = board->clone();
+    next->playMove(this);
+    if (next->inCheck())
+    {
+        if (next->isDraw())
+        {
+            checkString = "#";
+        }
+        else
+        {
+            checkString = "+";
+        }
+    }
+    return typeStr + colStr + rowStr + captureStr + (string)dest + checkString;
 }

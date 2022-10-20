@@ -4,12 +4,21 @@
 #include <map>
 #include <ostream>
 #include <torch/torch.h>
+#include <boost/regex.hpp>
 namespace chess
 {
+    class Board;
     enum Player
     {
         PLAYER_WHITE = 0,
         PLAYER_BLACK = 1
+    };
+    enum Winner
+    {
+        WINNER_WHITE = 0,
+        WINNER_BLACK = 1,
+        WINNER_DRAW = 2,
+        WINNER_NONE = -1
     };
     inline Player other(Player player)
     {
@@ -83,21 +92,42 @@ namespace chess
         {
             return a.row == b.row && a.col == b.col;
         }
+        inline static Point parse(std::string str)
+        {
+            return {str[1] - '1', str[0] >= 'a' ? str[0] - 'a' : str[0] - 'A'};
+        }
+        inline operator std::string()
+        {
+            char* buffer = new char[3];
+            buffer[0] = col + 'a';
+            buffer[1] = row + '1';
+            buffer[2] = 0;
+            return std::string(buffer);
+        }
     };
     class Move
     {
     public:
         Point src, dest;
+        bool isResign, isDraw;
         Move() = default;
-        inline Move(Point src, Point dest)
+        inline Move(Point src, Point dest, bool isResign = false, bool isDraw = false)
         {
             this->src = src;
             this->dest = dest;
+            this->isResign = isResign;
+            this->isDraw = isDraw;
         }
         inline static Move* resign()
         {
-            return new Move({-1, -1}, {-1, -1});
+            return new Move({-1, -1}, {-1, -1}, true);
         }
+        inline static Move* draw()
+        {
+            return new Move({-1, -1}, {-1, -1}, false, true);
+        }
+        static Move* parse(boost::smatch match, Board*);
+        std::string toSAN(Board* board);
     };
     class Board;
     class Piece
@@ -185,12 +215,13 @@ namespace chess
         Piece* grid[8][8];
         Player next;
         Point kingWhite, kingBlack;
-        int winner;
+        Winner winner;
         Board();
         bool canMove(Move* move, bool checkForCheck = true);
         void playMove(Move* move);
         std::vector<Piece*> getPieces(Player player);
-        std::vector<Move*> getPossibleMoves(bool checkForCheck);
+        std::vector<Piece*> getPieces(Player player, PieceType type);
+        std::vector<Move*> getPossibleMoves(bool checkForCheck = true);
         bool inCheck();
         bool isDraw();
         Board* clone();
@@ -209,7 +240,7 @@ namespace chess
         virtual void handlePrint(Board* board)
         {
         }
-        virtual void handleWinner(int winner)
+        virtual void handleWinner(Winner winner)
         {
         }
         virtual void setPlayer(Player player)
@@ -230,6 +261,7 @@ namespace chess
         Board* getCurrentBoard();
         void playMove(Move* move);
         void step();
+        std::string toPGN();
     };
     class MinimaxBot : public Bot
     {

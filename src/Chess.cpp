@@ -933,6 +933,15 @@ string Game::toPGN()
 }
 string Move::toSAN(Board* board)
 {
+    if (isResign)
+    {
+        if (board->next == PLAYER_WHITE) return "1-0";
+        return "0-1";
+    }
+    else if (isDraw)
+    {
+        return "1/2-1/2";
+    }
     string typeStr = "";
     PieceType type = board->grid[src.row][src.col]->type;
     if (type == PIECE_ROOK)

@@ -249,6 +249,9 @@ namespace chess
         virtual void setGameReference(Game* gameReference)
         {
         }
+        virtual void handleMove(Move* move, Board* board)
+        {
+        }
     };
     class Game
     {
@@ -278,6 +281,7 @@ namespace chess
     public:
         NeuralBot();
         Move* findMove(Board* board);
+        static void loadGames(std::vector<Game> games);
     };
 }
 std::ostream& operator<<(std::ostream& out, chess::Board board);

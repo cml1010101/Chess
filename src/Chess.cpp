@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <memory.h>
 #include <iostream>
+#include <filesystem>
 using namespace chess;
 using namespace std;
 bool Pawn::canMove(Board* board, Move* move)
@@ -560,7 +561,13 @@ void Game::step()
     {
         playMove(Move::resign());
     }
-    else playMove(bots[getCurrentBoard()->next]->findMove(getCurrentBoard()));
+    else
+    {
+        auto move = bots[getCurrentBoard()->next]->findMove(getCurrentBoard());
+        bots[PLAYER_WHITE]->handleMove(move, getCurrentBoard());
+        bots[PLAYER_BLACK]->handleMove(move, getCurrentBoard());
+        playMove(move);
+    }
 }
 ostream& operator<<(ostream& out, Board board)
 {
@@ -668,7 +675,6 @@ Move* MinimaxBot::findMove(Board* board)
     {
         if (moveScores[i].first == idealScore) idealMoves.push_back(moveScores[i].second);
     }
-    cout << "Found move with score of " << idealScore << endl;
     return idealMoves[rand() % idealMoves.size()];
 }
 uint8_t* Board::serialize()

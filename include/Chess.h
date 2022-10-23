@@ -281,7 +281,8 @@ namespace chess
     public:
         NeuralBot();
         Move* findMove(Board* board);
-        static void loadGames(std::vector<Game> games);
+        ~NeuralBot();
+        static void trainGames(std::vector<Game> games);
     };
 }
 std::ostream& operator<<(std::ostream& out, chess::Board board);

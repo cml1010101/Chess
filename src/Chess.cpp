@@ -4,6 +4,8 @@
 #include <memory.h>
 #include <iostream>
 #include <filesystem>
+#include <torch/script.h>
+#include <torch/jit.h>
 using namespace chess;
 using namespace std;
 bool Pawn::canMove(Board* board, Move* move)
@@ -756,14 +758,21 @@ Tensor Board::encode()
 }
 NeuralBot::NeuralBot()
 {
-    model = Sequential(
-        Conv2d(Conv2dOptions(6, 24, 3)),
-        Flatten(FlattenOptions().start_dim(0).end_dim(-1)),
-        Linear(LinearOptions(864, 864)),
-        Sigmoid(),
-        Linear(LinearOptions(864, 1)),
-        Tanh()
-    );
+    if (filesystem::exists("/usr/share/neuralbot.dat"))
+    {
+        load(model, "/usr/share/neuralbot.dat");
+    }
+    else
+    {
+        model = Sequential(
+            Conv2d(Conv2dOptions(6, 24, 3)),
+            Flatten(FlattenOptions().start_dim(0).end_dim(-1)),
+            Linear(LinearOptions(864, 864)),
+            Sigmoid(),
+            Linear(LinearOptions(864, 1)),
+            Tanh()
+        );
+    }
 }
 Move* NeuralBot::findMove(Board* board)
 {
@@ -782,6 +791,50 @@ Move* NeuralBot::findMove(Board* board)
         }
     }
     return highestScoringMove;
+}
+NeuralBot::~NeuralBot()
+{
+    save(model, "/usr/share/neuralbot.dat");
+}
+void NeuralBot::trainGames(std::vector<Game> games)
+{
+    torch::nn::Sequential model;
+    if (filesystem::exists("/usr/share/neuralbot.dat"))
+    {
+        load(model, "/usr/share/neuralbot.dat");
+    }
+    else
+    {
+        model = Sequential(
+            Conv2d(Conv2dOptions(6, 24, 3)),
+            Flatten(FlattenOptions().start_dim(0).end_dim(-1)),
+            Linear(LinearOptions(864, 864)),
+            Sigmoid(),
+            Linear(LinearOptions(864, 1)),
+            Tanh()
+        );
+    }
+    torch::optim::SGD sgd(model->parameters(), torch::optim::SGDOptions(5e-2));
+    for (auto game : games)
+    {
+        double outputValue = 0;
+        if (game.getCurrentBoard()->winner == PLAYER_WHITE)
+            outputValue = 1;
+        else if (game.getCurrentBoard()->winner == PLAYER_BLACK)
+            outputValue = -1;
+        for (size_t i = 0; i < game.moves.size(); i++)
+        {
+            torch::Tensor t = game.boards[i]->encode();
+            torch::Tensor tempOutputValue = torch::empty(1);
+            tempOutputValue[0] = (outputValue * direction(game.boards[i]->next));
+            auto output = model->forward(t);
+            auto loss = torch::nn::functional::cross_entropy(output, tempOutputValue);
+            sgd.zero_grad();
+            loss.backward();
+            sgd.step();
+        }
+    }
+    save(model, "/usr/share/neuralbot.dat");
 }
 const string TIE = "1/2-1/2";
 using namespace boost;

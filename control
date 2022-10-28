@@ -1,0 +1,5 @@
+Package: libchess
+Version: 1.0
+Maintainer: cml1010101
+Architecture: amd64
+Description: A chess library in C++

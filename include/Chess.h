@@ -212,6 +212,7 @@ namespace chess
     class Board
     {
     public:
+        Move* previousMove;
         Piece* grid[8][8];
         Player next;
         Point kingWhite, kingBlack;

@@ -19,6 +19,18 @@ bool Pawn::canMove(Board* board, Move* move)
         }
         else if (dCol == 1)
         {
+            if (board->grid[move->dest.row][move->dest.col] == NULL)
+            {
+                return board->grid[move->src.row][move->dest.col] != NULL
+                    && board->grid[move->src.row][move->dest.col]->player != player
+                    && board->grid[move->src.row][move->dest.col]->type == PIECE_PAWN
+                    && board->previousMove->src.col == move->dest.col
+                    && board->previousMove->src.row == 
+                        (starting_row(other(player)) - direction(player))
+                    && board->previousMove->dest.col == move->dest.col
+                    && board->previousMove->dest.row ==
+                        (starting_row(other(player)) - direction(player) * 3);
+            }
             return board->grid[move->dest.row][move->dest.col] != NULL
                 && board->grid[move->dest.row][move->dest.col]->player != player;
         }
@@ -388,6 +400,7 @@ Board::Board()
     kingWhite = Point(0, 4);
     kingBlack = Point(7, 4);
     winner = WINNER_NONE;
+    previousMove = NULL;
 }
 bool Board::canMove(Move* move, bool checkForCheck)
 {
@@ -416,6 +429,7 @@ bool Board::canMove(Move* move, bool checkForCheck)
 }
 void Board::playMove(Move* move)
 {
+    previousMove = move;
     if (move->isResign)
     {
         winner = (next == PLAYER_WHITE) ? WINNER_BLACK : WINNER_WHITE;
@@ -443,6 +457,17 @@ void Board::playMove(Move* move)
         }
         Point& king = (next == PLAYER_WHITE) ? kingWhite : kingBlack;
         king = move->dest;
+    }
+    if (grid[move->dest.row][move->dest.col]->type == PIECE_PAWN)
+    {
+        int dRow = (move->dest.row - move->src.row) * direction(next),
+            dCol = abs(move->dest.col - move->src.col);
+        if (dRow == 1 && dCol == 1 && grid[move->dest.row][move->dest.col] == NULL
+            && grid[move->src.row][move->dest.col] != NULL
+            && grid[move->src.row][move->dest.col]->player != next)
+        {
+            grid[move->src.row][move->dest.row] = NULL;
+        }
     }
     grid[move->src.row][move->src.col]->loc = move->dest;
     grid[move->dest.row][move->dest.col] = grid[move->src.row][move->src.col];

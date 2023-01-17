@@ -458,7 +458,7 @@ void Board::playMove(Move* move)
         Point& king = (next == PLAYER_WHITE) ? kingWhite : kingBlack;
         king = move->dest;
     }
-    if (grid[move->dest.row][move->dest.col]->type == PIECE_PAWN)
+    if (grid[move->src.row][move->src.col]->type == PIECE_PAWN)
     {
         int dRow = (move->dest.row - move->src.row) * direction(next),
             dCol = abs(move->dest.col - move->src.col);
@@ -783,9 +783,9 @@ Tensor Board::encode()
 }
 NeuralBot::NeuralBot()
 {
-    if (filesystem::exists("/usr/share/neuralbot.dat"))
+    if (filesystem::exists("/usr/share/libchess/neuralbot.dat"))
     {
-        load(model, "/usr/share/neuralbot.dat");
+        load(model, "/usr/share/libchess/neuralbot.dat");
     }
     else
     {
@@ -819,7 +819,7 @@ Move* NeuralBot::findMove(Board* board)
 }
 NeuralBot::~NeuralBot()
 {
-    save(model, "/usr/share/neuralbot.dat");
+    save(model, "/usr/share/libchess/neuralbot.dat");
 }
 void NeuralBot::trainGames(std::vector<Game> games)
 {
@@ -835,11 +835,19 @@ void NeuralBot::trainGames(std::vector<Game> games)
             Flatten(FlattenOptions().start_dim(0).end_dim(-1)),
             Linear(LinearOptions(864, 864)),
             Sigmoid(),
-            Linear(LinearOptions(864, 1)),
-            Tanh()
+            Linear(LinearOptions(864, 128)),
+            Sigmoid()
         );
     }
     torch::optim::SGD sgd(model->parameters(), torch::optim::SGDOptions(5e-2));
+    long numMoves = 0;
+    for (auto game : games)
+    {
+        numMoves += game.moves.size();
+    }
+    Tensor xTrain = torch::empty({numMoves, 6, 8, 8});
+    Tensor yTrain = torch::empty({numMoves, 128});
+    size_t k = 0;
     for (auto game : games)
     {
         double outputValue = 0;
@@ -850,14 +858,26 @@ void NeuralBot::trainGames(std::vector<Game> games)
         for (size_t i = 0; i < game.moves.size(); i++)
         {
             torch::Tensor t = game.boards[i]->encode();
-            torch::Tensor tempOutputValue = torch::empty(1);
-            tempOutputValue[0] = (outputValue * direction(game.boards[i]->next));
-            auto output = model->forward(t);
-            auto loss = torch::nn::functional::cross_entropy(output, tempOutputValue);
-            sgd.zero_grad();
-            loss.backward();
-            sgd.step();
+            torch::Tensor t2 = game.moves[i]->encode();
+            xTrain[k] = t;
+            yTrain[k++] = t2;
         }
+    }
+    torch::optim::Adam adam(model->parameters(), torch::optim::AdamOptions(5e-4));
+    for (size_t i = 0; i < 5; i++)
+    {
+        for (size_t j = 0; j < numMoves / 50; j++)
+        {
+            adam.zero_grad();
+            for (size_t k = 0; k < 50; k++)
+            {
+                Tensor output = model->forward(xTrain[j * 50 + k]);
+                Tensor tensor = torch::cross_entropy_loss(output, yTrain[j * 50 + k]);
+                tensor.backward();
+            }
+            adam.step();
+        }
+        cout << "Completed batch " << (i + 1) << " of " << 5 << endl;
     }
     save(model, "/usr/share/neuralbot.dat");
 }
@@ -921,6 +941,10 @@ istream& operator>>(istream& in, chess::Game& game)
             ));
             continue;
         }
+        if (statement.find(".") != -1)
+        {
+            continue;
+        }
         boost::smatch matchInfo;
         if (regex_match(statement, matchInfo, moveStatement))
         {
@@ -959,14 +983,20 @@ Move* Move::parse(smatch match, Board* board)
     int srcCol = srcColStr.empty() ? -1 : srcColStr[0] - 'a';
     string destStr = string(match[6].begin(), match[6].end());
     Point dest = Point::parse(destStr);
+    cout << destStr << " --> " << dest << endl;
+    cout << typeStr << ": " << type << endl;
+    cout << (board->next == PLAYER_WHITE ? "white\n" : "black\n");
     auto possiblePieces = board->getPieces(board->next, type);
     for (auto piece : possiblePieces)
     {
         if (piece->loc.col != srcCol && srcCol != -1) continue;
         if (piece->loc.row != srcRow && srcRow != -1) continue;
+        cout << "Testing " << piece->loc << " to " << dest << endl;
         Move* move = new Move(piece->loc, dest);
         if (board->canMove(move)) return move;
     }
+    cout << *board << endl;
+    cout << match.str() << endl;
     return NULL;
 }
 vector<Piece*> Board::getPieces(Player player, PieceType type)
@@ -1077,4 +1107,22 @@ string Move::toSAN(Board* board)
         }
     }
     return typeStr + colStr + rowStr + captureStr + (string)dest + checkString;
+}
+torch::Tensor Move::encode()
+{
+    auto tensor = torch::zeros({128});
+    tensor[src.row * 8 + src.col] = 1;
+    tensor[dest.row * 8 + dest.col] = 1;
+    return tensor;
+}
+Move* Move::decode(at::Tensor tensor)
+{
+    int srcPos = argmax(tensor.slice(0, 0, 64)).item().toInt();
+    int destPos = argmax(tensor.slice(0, 64, 128)).item().toInt();
+    return new Move(Point(srcPos / 8, srcPos % 8), Point(destPos / 8, destPos % 8));
+}
+ostream& operator<<(ostream& out, Point point)
+{
+    out << "(" << point.row << ", " << point.col << ")";
+    return out;
 }

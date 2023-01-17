@@ -94,7 +94,7 @@ namespace chess
         }
         inline static Point parse(std::string str)
         {
-            return {str[1] - '1', str[0] >= 'a' ? str[0] - 'a' : str[0] - 'A'};
+            return {str[1] - '1', (str[0] >= 'a') ? (str[0] - 'a') : (str[0] - 'A')};
         }
         inline operator std::string()
         {
@@ -128,6 +128,8 @@ namespace chess
         }
         static Move* parse(boost::smatch match, Board*);
         std::string toSAN(Board* board);
+        torch::Tensor encode();
+        static Move* decode(torch::Tensor tensor);
     };
     class Board;
     class Piece
@@ -289,4 +291,5 @@ namespace chess
 std::ostream& operator<<(std::ostream& out, chess::Board board);
 std::istream& operator>>(std::istream& in, chess::Game& game);
 std::ostream& operator<<(std::ostream& out, chess::Game game);
+std::ostream& operator<<(std::ostream& out, chess::Point point);
 #endif

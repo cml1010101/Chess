@@ -4,6 +4,7 @@
 #include <Piece.hpp>
 #include <Point.hpp>
 #include <Winner.hpp>
+#include <ostream>
 namespace chess
 {
     class Board
@@ -31,5 +32,6 @@ namespace chess
         torch::Tensor encode();
 #endif
     };
+    std::ostream& operator<<(std::ostream& out, Board board);
 }
 #endif

@@ -178,7 +178,7 @@ Board* Board::clone()
     clone->winner = winner;
     return clone;
 }
-ostream& operator<<(ostream& out, Board board)
+ostream& chess::operator<<(ostream& out, Board board)
 {
     for (int i = 8 - 1; i >= 0; i--)
     {

@@ -30,5 +30,4 @@ if(BUILD_TESTS)
         "tests/ConsoleChess.cpp"
     )
     target_link_libraries(ConsoleChess PUBLIC Chess)
-    add_test(ConsoleChess)
 endif()
